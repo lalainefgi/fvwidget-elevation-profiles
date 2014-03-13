@@ -40,10 +40,11 @@
 	</s:layout>
 	<fx:Script>
 		<![CDATA[
+			import com.esri.ags.FeatureSet;
 			import com.esri.ags.Graphic;
 			import com.esri.ags.geometry.MapPoint;
+			import com.esri.ags.geometry.Polyline;
 			import com.esri.ags.layers.GraphicsLayer;
-			import com.esri.viewer.ConfigData;
 			
 			import mx.charts.events.ChartItemEvent;
 			import mx.events.CloseEvent;
@@ -99,24 +100,25 @@
 				// Add elevation values to points; determine the min elevation value
 				// Get the global minimum elevation value so the chart area is correctly filled in for 
 				// negative values. If min value > 0, lower it to zero to fill in for highly positive values.
-				var oResult:Object = oData[ "result" ];
-				var oConfig:XML    = oData[ "config" ];
-								
+				var fsResult:FeatureSet	= oData[ "result" ];
+				var oConfig:XML    		= oData[ "config" ];
+				
+				var nFromDistanceAlongMetersFactor:Number = Number(oConfig.unitsAndLabeling.distanceAlongPath.multiplyByToConvertFromMeters.valueOf());
 				var nFromElevationMetersFactor:Number = Number(oConfig.unitsAndLabeling.elevation.multiplyByToConvertFromMeters.valueOf());
-				var aryElevations:Array = elevations( oResult, nFromElevationMetersFactor );
+				var aryElevations:Array = elevations( fsResult, nFromElevationMetersFactor );
 				var nElevationMin:Number = Math.min.apply( null, aryElevations );
-				if ( baseAtZero(_config) )
+				if ( baseAtZero( _config ) )
 					nElevationMin = Math.min( nElevationMin, 0 );
 //				addElevationsToPoints( oResult, aryElevations );
 				
 				// Mash elevations and distances and geometries together
 				var aryChartData:Array = new Array();
-				var ptPrior:Array = null;
-				var nCurDistAlong:Number = 0;
+//				var ptPrior:Array = null;
+//				var nCurDistAlong:Number = 0;
 				
 				// For each geometry returned...
-				for ( var iGeom:int = 0; iGeom < oResult.geometries.length; iGeom++ ) {
-					var oGeom:Object = oResult.geometries[ iGeom ];
+				for ( var iGeom:int = 0; iGeom < fsResult.features.length; iGeom++ ) {
+					var oGeom:Polyline = fsResult.features[ iGeom ].geometry;
 					
 					// For each path in each geometry...
 					for ( var iPath:int = 0; iPath < oGeom.paths.length; iPath++ ) {
@@ -124,25 +126,25 @@
 						
 						// For each point in each path...
 						for ( var iPt:int = 0; iPt < aryPath.length; iPt++ ) {
-							var ptCurrent:Array = aryPath[ iPt ];
+							var ptCurrent:MapPoint = aryPath[ iPt ];
 							// Find distance from last point
-							var nDistFromLast:Number = ( ptPrior == null ) ? 0 :
+/* 							var nDistFromLast:Number = ( ptPrior == null ) ? 0 :
 								Math.sqrt(
 									Math.pow( ( ptCurrent[ 0 ] - ptPrior[ 0 ] ), 2 ) +
 									Math.pow( ( ptCurrent[ 1 ] - ptPrior[ 1 ] ), 2 )
 								) * Number(oConfig.unitsAndLabeling.distanceAlongPath.multiplyByToConvertFromMeters.valueOf()); // Web Mercator is in meters
-							nCurDistAlong += nDistFromLast;
+							nCurDistAlong += nDistFromLast; */
 							
 							// Add info to data array
 							aryChartData.push( {
-								"elevation"		: ptCurrent[ 2 ] * nFromElevationMetersFactor,
+								"elevation"		: ptCurrent.z * nFromElevationMetersFactor,
 								"elevationLabel": oConfig.unitsAndLabeling.elevation.label.dataTip.valueOf().toString(),
-								"geometry"		: [ ptCurrent[ 0 ], ptCurrent[ 1 ] ],
-								"distance"		: nCurDistAlong,
+								"geometry"		: [ ptCurrent.x, ptCurrent.y ],
+								"distance"		: ptCurrent.m * nFromDistanceAlongMetersFactor,
 								"distanceLabel"	: oConfig.unitsAndLabeling.distanceAlongPath.label.dataTip.valueOf().toString(),
 								"elevationMin"	: nElevationMin
 							} );
-							ptPrior = ptCurrent;
+//							ptPrior = ptCurrent;
 						}
 					}
 				}
@@ -157,7 +159,7 @@
 				 * @return A single-dimensional array of elevation values (order unchanged from the 
 				 * original 2-d array) 
 				 **/
-				function elevations( oResult:Object, nFromMeters:Number ):Array {
+				function elevations( fsResult:FeatureSet, nFromMeters:Number ):Array {
 					var aryElevations:Array = new Array();
 //					for ( var iElevationSet:int = 0; iElevationSet < oResult.elevations.length; iElevationSet++ ) {
 //						var aryElevationSet:Array = oResult.elevations[ iElevationSet ];
@@ -165,17 +167,17 @@
 //							aryElevations.push( aryElevationSet[ iElevation ] * nFromMeters );
 //					}
 					// For each geometry returned...
-					for ( var iGeom:int = 0; iGeom < oResult.geometries.length; iGeom++ ) {
-						var oGeom:Object = oResult.geometries[ iGeom ];
+					for ( var iGeom:int = 0; iGeom < fsResult.features.length; iGeom++ ) {
+						var plResult:Polyline = fsResult.features[ iGeom ].geometry as Polyline;
 						
 						// For each path in each geometry...
-						for ( var iPath:int = 0; iPath < oGeom.paths.length; iPath++ ) {
-							var aryPath:Array = oGeom.paths[ iPath ];
+						for ( var iPath:int = 0; iPath < plResult.paths.length; iPath++ ) {
+							var aryPath:Array = plResult.paths[ iPath ];
 							
 							// For each point in each path...
 							for ( var iPt:int = 0; iPt < aryPath.length; iPt++ ) {
-								var ptCurrent:Array = aryPath[ iPt ];
-								aryElevations.push( ptCurrent[ 2 ] * nFromMeters );
+								var ptCurrent:MapPoint = aryPath[ iPt ] as MapPoint;
+								aryElevations.push( ptCurrent.z * nFromMeters );
 							}
 						}
 					}

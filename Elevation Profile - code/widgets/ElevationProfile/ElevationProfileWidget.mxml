@@ -39,7 +39,9 @@
 				   >
 	<fx:Script>
 		<![CDATA[
+			import com.esri.ags.FeatureSet;
 			import com.esri.ags.events.DrawEvent;
+			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.utils.JSONUtil;
 			
 			import mx.core.IFlexDisplayObject;
@@ -50,6 +52,8 @@
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			
+			import widgets.supportClasses.FeatureSetUtil;
 			
 			[Bindable]
 			private var _configXML:XML;
@@ -70,7 +74,7 @@
 			}
 
 			/**
-			 * Finish drawing, send sketch to elevation SOE, and receive results from the SOE.<p/>
+			 * Finish drawing, send sketch to elevation service, and receive results after execution.<p/>
 			 * <b>NOTE:</b> If the sketched polyline crosses itself or self-intersects, it will
 			 * be simplified on the server. If this happens, the returned paths may be out of
 			 * order and the chart results will be incorrect.
@@ -80,25 +84,31 @@
 				draw.deactivate();
 				
 				// Get geometries for each point
-				var sGeoms:String = JSONUtil.encode( [ event.graphic.geometry ] );
+				var fsLine:FeatureSet = new FeatureSet( [ event.graphic ] );
+//				var sGeoms:String = JSONUtil.encode( [ event.graphic.geometry ] );
 				var oParams:Object = {
-					"f"				: "json",
-					"geometries"	: sGeoms
+					"f"					: "json",
+					"InputLineFeatures"	: JSONUtil.encode( fsLine ),
+					"returnZ"			: true,
+					"returnM"			: true
 				}
 					
 				// Send geometries off to SOE to get elevations
 				var atToken:AsyncToken = websvcElevations.send( oParams );
 				atToken.addResponder( new AsyncResponder( 
 					
-					//--- Handle results from elevation profile SOE ---//
+					//--- Handle results from elevation profile service ---//
 					function( event:ResultEvent, token:Object ):void {
 						try {
 							var oResult:Object = JSONUtil.decode( event.result.toString() );
+							var fsResult:FeatureSet = FeatureSet.fromJSON( oResult.results[0].value );
+							
 							if ( oResult.hasOwnProperty( "error" ) )
 								showError( "The server returned an error:\n" + oResult.error.message );
+							
 							else {
 								chtWindow.chartData = {
-									"result"	: oResult,
+									"result"	: fsResult,
 									"config"	: _configXML
 								}
 								
@@ -106,10 +116,16 @@
 									PopUpManager.addPopUp( chtWindow as IFlexDisplayObject, map, false, PopUpManagerChildList.POPUP );
 									PopUpManager.centerPopUp( chtWindow );
 								}
+								
+								// Replace drawn line with returned line
+								glProfileLine.clear();
+								glProfileLine.add( fsResult.features[ 0 ] );
 							}
 						}
 						catch ( err:Error ) {
-							showError( "A problem occurred while parsing and charting the returned elevation data:\n" + err.message.toString() );
+							var oRes:Object = JSONUtil.decode( event.result as String );
+							var sMsg:String = oRes.error.details[0];
+							showError( sMsg );
 						}
 					},
 					function( event:FaultEvent, token:Object ):void {
@@ -175,7 +191,7 @@
 		</esri:GraphicsLayer>
 
 		<!-- Using POST since GET doesn't always handle lines with large #s of points -->
-		<s:HTTPService showBusyCursor="true" method="POST" id="websvcElevations" url="{_configXML.elevationSOEURL}" resultFormat="text"/>
+		<s:HTTPService showBusyCursor="true" method="POST" id="websvcElevations" url="{_configXML.elevationSvcURL}" resultFormat="text"/>
 		
 		<!-- Chart pop-up window -->
 		<components:ChartWindow styleName="styleLikeWidgetTemplate" title="{_configXML.chartTitle}" close="closeChartWindow()" id="chtWindow" glProfileLine="{glProfileLine}"/>

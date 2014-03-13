@@ -28,8 +28,7 @@
 * 
 * =============================================================================-->
 <configuration>
-	<elevationSOEURL>http://sampleserver6.arcgisonline.com/arcgis/rest/services/Elevation/WorldElevations/MapServer/exts/ElevationsSOE_NET/ElevationLayers/0/GetElevations</elevationSOEURL>
-<!-- 	<elevationSOEURL>http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/Elevation/ESRI_Elevation_World/MapServer/exts/ElevationsSOE/ElevationLayers/1/GetElevations</elevationSOEURL> -->
+	<elevationSvcURL>http://elevation.arcgis.com/arcgis/rest/services/Tools/ElevationSync/GPServer/Profile/execute</elevationSvcURL>
 	<!-- Basic characteristics of the profile line in the chart -->
 	<profileLineWidth>2</profileLineWidth>
 	<profileLineColor>0x000099</profileLineColor>
