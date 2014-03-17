@@ -32,7 +32,7 @@
     <!-- supported layout property options: horizontal(default)|float|vertical|fix-->
     <widgetcontainer layout="float">
  		<widget label="Elevation Profiles" top="350" bottom="20"
-			icon="widgets/ElevationProfile/images/i_widget.png"
+			icon="widgets/ElevationProfile/images/i_epwidget.png"
 			url="widgets/ElevationProfile/ElevationProfileWidget.swf"
 			config="widgets/ElevationProfile/ElevationProfileWidget.xml"
 			preload="open"/>
