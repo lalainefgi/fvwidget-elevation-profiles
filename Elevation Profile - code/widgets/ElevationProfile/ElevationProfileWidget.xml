@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+﻿<?xml version="1.0" ?>
 <!--=============================================================================
 * 
 * Copyright © 2010 ESRI. All rights reserved. 
@@ -28,8 +28,7 @@
 * 
 * =============================================================================-->
 <configuration>
-	<elevationSOEURL>http://sampleserver6.arcgisonline.com/arcgis/rest/services/Elevation/WorldElevations/MapServer/exts/ElevationsSOE_NET/ElevationLayers/0/GetElevations</elevationSOEURL>
-<!-- 	<elevationSOEURL>http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/Elevation/ESRI_Elevation_World/MapServer/exts/ElevationsSOE/ElevationLayers/1/GetElevations</elevationSOEURL> -->
+	<elevationSOEURL>http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/Elevation/ESRI_Elevation_World/MapServer/exts/ElevationsSOE/ElevationLayers/1/GetElevations</elevationSOEURL>
 	<!-- Basic characteristics of the profile line in the chart -->
 	<profileLineWidth>2</profileLineWidth>
 	<profileLineColor>0x000099</profileLineColor>
@@ -58,7 +57,7 @@
 			<multiplyByToConvertFromMeters>0.001</multiplyByToConvertFromMeters>
 		</distanceAlongPath>
 	</unitsAndLabeling>
-<!--	 Use this section for feet and miles
+	<!-- Use this section for feet and miles
 	<unitsAndLabeling>
 		<elevation>
 			<label>
@@ -74,8 +73,8 @@
 			</label>
 			<multiplyByToConvertFromMeters>0.000621371192</multiplyByToConvertFromMeters>
 		</distanceAlongPath>
-	</unitsAndLabeling>-->
-		
+	</unitsAndLabeling>
+	-->	
 
 	<!-- Template for defining your own units -->
 	<template-ignoredByCode>

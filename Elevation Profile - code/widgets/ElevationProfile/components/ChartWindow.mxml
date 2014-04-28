@@ -107,7 +107,7 @@
 				var nElevationMin:Number = Math.min.apply( null, aryElevations );
 				if ( baseAtZero(_config) )
 					nElevationMin = Math.min( nElevationMin, 0 );
-//				addElevationsToPoints( oResult, aryElevations );
+				addElevationsToPoints( oResult, aryElevations );
 				
 				// Mash elevations and distances and geometries together
 				var aryChartData:Array = new Array();
@@ -135,7 +135,7 @@
 							
 							// Add info to data array
 							aryChartData.push( {
-								"elevation"		: ptCurrent[ 2 ] * nFromElevationMetersFactor,
+								"elevation"		: ptCurrent[ 2 ], //aryElevations.shift(),
 								"elevationLabel": oConfig.unitsAndLabeling.elevation.label.dataTip.valueOf().toString(),
 								"geometry"		: [ ptCurrent[ 0 ], ptCurrent[ 1 ] ],
 								"distance"		: nCurDistAlong,
@@ -149,7 +149,7 @@
 				return aryChartData;
 				
 				/**
-				 * Given the result set of geometries with z-values, produce a new single-dimensional array
+				 * Given an array of arrays of elevation values, produce a new single-dimensional array
 				 * of elevation values. These will eventually be mixed into the location and distance
 				 * array for display in the chart.
 				 * @param oResult: The result object returned from the call to the elevation SOE.
@@ -159,29 +159,15 @@
 				 **/
 				function elevations( oResult:Object, nFromMeters:Number ):Array {
 					var aryElevations:Array = new Array();
-//					for ( var iElevationSet:int = 0; iElevationSet < oResult.elevations.length; iElevationSet++ ) {
-//						var aryElevationSet:Array = oResult.elevations[ iElevationSet ];
-//						for ( var iElevation:int = 0; iElevation < aryElevationSet.length; iElevation++ ) 
-//							aryElevations.push( aryElevationSet[ iElevation ] * nFromMeters );
-//					}
-					// For each geometry returned...
-					for ( var iGeom:int = 0; iGeom < oResult.geometries.length; iGeom++ ) {
-						var oGeom:Object = oResult.geometries[ iGeom ];
-						
-						// For each path in each geometry...
-						for ( var iPath:int = 0; iPath < oGeom.paths.length; iPath++ ) {
-							var aryPath:Array = oGeom.paths[ iPath ];
-							
-							// For each point in each path...
-							for ( var iPt:int = 0; iPt < aryPath.length; iPt++ ) {
-								var ptCurrent:Array = aryPath[ iPt ];
-								aryElevations.push( ptCurrent[ 2 ] * nFromMeters );
-							}
-						}
+					for ( var iElevationSet:int = 0; iElevationSet < oResult.elevations.length; iElevationSet++ ) {
+						var aryElevationSet:Array = oResult.elevations[ iElevationSet ];
+						for ( var iElevation:int = 0; iElevation < aryElevationSet.length; iElevation++ ) 
+							aryElevations.push( aryElevationSet[ iElevation ] * nFromMeters );
 					}
+					
 					return aryElevations;
 				}
-/* 				function addElevationsToPoints( oResult:Object, aryElevations:Array ):void {
+				function addElevationsToPoints( oResult:Object, aryElevations:Array ):void {
 					var aryResult:Array = new Array();
 					var iCurItemIdx:int = -1;
 					
@@ -200,7 +186,7 @@
 							}
 						}
 					}
-				} */
+				}
 			}
 			
 			private function baseAtZero(config:XML):Boolean {
